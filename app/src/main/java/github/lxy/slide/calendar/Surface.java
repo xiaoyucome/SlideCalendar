@@ -17,13 +17,13 @@ public class Surface {
     public float monthChangeWidth; // 上一月、下一月按钮宽度
 
     // 颜色设置
-    private int weekColor = Color.parseColor("#a1e8ef");// 周一到周日的颜色
+    public int weekColor = Color.parseColor("#a1e8ef");// 周一到周日的颜色
     public int todayNumberColor = Color.parseColor("#ff804e");// 今天日期的颜色
     public int dateBgColor = Color.parseColor("#50c8d3");// 周一到周日的背景色
-    private int dateMiddleColor = Color.parseColor("#f4f5f7");// 周一到周日的背景色
+    public int dateMiddleColor = Color.parseColor("#f4f5f7");// 周一到周日的背景色
     public int cellDownColor = Color.parseColor("#5dcad5");// 按下的日期背景框的颜色
-    private int noneMonthDateColor = Color.parseColor("#c8c8c8");// 非本月日期的颜色
-    private int monthColor = Color.parseColor("#555555");// 本月的日期颜色(1-31)的颜色
+    public int noneMonthDateColor = Color.parseColor("#c8c8c8");// 非本月日期的颜色
+    public int monthColor = Color.parseColor("#555555");// 本月的日期颜色(1-31)的颜色
     public int calendarBgColor = Color.parseColor("#ffffff");// 整个日历的背景色,不包括上面的title
     public int selectDateColor = Color.parseColor("#ffffff");// 滑动选择的时候,被选中的日期为白色
     public int dateSelectMiddleColor = Color.parseColor("#85dde5");// 滑动选择日期非首位背景框的颜色
