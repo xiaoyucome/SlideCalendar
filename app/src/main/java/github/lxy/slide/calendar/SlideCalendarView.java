@@ -3,12 +3,14 @@ package github.lxy.slide.calendar;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Toast;
 
 import java.util.Calendar;
 import java.util.Date;
 
-public class SlideCalendarView extends View {
+public class SlideCalendarView extends View implements View.OnTouchListener{
     private Surface surface;
     private Calendar calendar;
     private int todayIndex = -1;
@@ -27,6 +29,18 @@ public class SlideCalendarView extends View {
     private int curStartIndex, curEndIndex; // 当前显示的日历起始的索引
     private Date showFirstDate, showLastDate; // 日历显示的第一个日期和最后一个日期
     private boolean completed = false; // 为false表示只选择了开始日期，true表示结束日期也选择了
+    private OnItemClickListener onItemClickListener;// 给控件设置监听事件
+
+    // 给控件设置监听事件
+    public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
+        this.onItemClickListener = onItemClickListener;
+    }
+
+    // 监听接口
+    public interface OnItemClickListener {
+        void OnItemClick(Date selectedStartDate, Date selectedEndDate,
+                         Date downDate);
+    }
 
     public SlideCalendarView(Context context) {
         super(context);
@@ -46,6 +60,7 @@ public class SlideCalendarView extends View {
         surface = new Surface();
         surface.density = getResources().getDisplayMetrics().density;
         setBackgroundColor(surface.calendarBgColor);
+        setOnTouchListener(this);
     }
 
     /**
@@ -293,5 +308,127 @@ public class SlideCalendarView extends View {
                 + (surface.cellWidth - surface.monthPaint.measureText(text))
                 / 2f;
         canvas.drawText(text, cellX, cellY, surface.monthPaint);
+    }
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        isSelectTime = true;
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                setSelectedDateByCoor(event.getX(), event.getY());
+                moveIndex = downIndex;
+                break;
+            case MotionEvent.ACTION_MOVE:
+                setMoveDateByCoor(event.getX(), event.getY());
+                if (moveIndex >= todayIndex && moveIndex <= 41)
+                    invalidate();
+                break;
+            case MotionEvent.ACTION_UP:
+                if (downDate == null || downDate == null)
+                    break;
+
+                if (isSelectTime && !downDate.before(today)) {
+                    //对选择的日期进行边界判断
+                    if (downDate.before(today)) {
+                        downDate = today;
+                    } else if (moveDate.before(today)) {
+                        moveDate = today;
+                    }
+
+                    //对起始日期赋值
+                    if (downDate.before(moveDate)) {//下滑
+                        selectedStartDate = downDate;
+                        selectedEndDate = moveDate;
+                    } else {//上滑/单天
+                        selectedStartDate = moveDate;
+                        selectedEndDate = downDate;
+                    }
+                    if (onItemClickListener != null)
+                        onItemClickListener.OnItemClick(selectedStartDate, selectedEndDate,
+                                downDate);
+                } else {
+                    Toast.makeText(getContext(), "不能选之前的日期", Toast.LENGTH_SHORT).show();
+                    if (onItemClickListener != null)
+                        onItemClickListener.OnItemClick(null, null, null);
+                }
+                break;
+        }
+        return true;
+    }
+
+    /**
+     * 根据抬起时的坐标xy,得到0-41的索引以及日期
+     */
+    public void setMoveDateByCoor(float x, float y) {
+        if (y < surface.monthHeight + surface.weekHeight) {
+            return;
+        }
+        if (y >= surface.height) {
+            return;
+        }
+
+        if (y > surface.monthHeight + surface.weekHeight) {// 按在了日期上面
+            int m = (int) (Math.floor(x / surface.cellWidth) + 1);// 得到横向按下的框的位置
+            int n = (int) (Math
+                    .floor((y - (surface.monthHeight + surface.weekHeight))
+                            / Float.valueOf(surface.cellHeight)) + 1);// 得到纵向按下的框的位置
+            moveIndex = (n - 1) * 7 + m - 1;// 得到按下的位置在42(0-41)个框中的索引
+            calendar.setTime(curDate);
+
+            // 根据框的索引,判断这个日期是上一月、还是下一月的
+            if (isLastMonth(moveIndex)) {
+                calendar.add(Calendar.MONTH, -1);
+            } else if (isNextMonth(moveIndex)) {
+                calendar.add(Calendar.MONTH, 1);
+            }
+            calendar.set(Calendar.DAY_OF_MONTH, date[moveIndex]);// date[startIndex]表示具体的提起(1.2.3...)
+            moveDate = calendar.getTime();
+            if (mLastMoveDate == null) {
+                mLastMoveDate = moveDate;
+            }
+            if (moveDate.before(today))
+                moveDate = mLastMoveDate;
+            mLastMoveDate = moveDate;
+        }
+    }
+
+    // 设置按下的一些日期数据
+    private void setSelectedDateByCoor(float x, float y) {
+        // change month
+        if (y < surface.monthHeight) {// 按下了表示月份那行
+            // pre month
+            if (x < surface.monthChangeWidth) {// 上一月的按钮
+                calendar.setTime(curDate);
+                calendar.add(Calendar.MONTH, -1);
+                curDate = calendar.getTime();
+            }
+
+            // next month
+            else if (x > surface.width - surface.monthChangeWidth) {// 下一月的按钮
+                calendar.setTime(curDate);
+                calendar.add(Calendar.MONTH, 1);
+                curDate = calendar.getTime();
+            }
+        }
+
+        // cell click down
+        if (y > surface.monthHeight + surface.weekHeight) {// 按在了日期上面
+            int m = (int) (Math.floor(x / surface.cellWidth) + 1);// 得到横向按下的框的位置
+            int n = (int) (Math
+                    .floor((y - (surface.monthHeight + surface.weekHeight))
+                            / Float.valueOf(surface.cellHeight)) + 1);// 得到纵向按下的框的位置
+            downIndex = (n - 1) * 7 + m - 1;// 得到按下的位置在42(0-41)个框中的索引
+            calendar.setTime(curDate);
+
+            // 根据框的索引,判断这个日期是上一月、还是下一月的
+            if (isLastMonth(downIndex)) {
+                calendar.add(Calendar.MONTH, -1);
+            } else if (isNextMonth(downIndex)) {
+                calendar.add(Calendar.MONTH, 1);
+            }
+            calendar.set(Calendar.DAY_OF_MONTH, date[downIndex]);// date[downIndex]表示具体的提起(1.2.3...)
+            moveDate = downDate = calendar.getTime();//此处moveDate必须赋值,防止在Up的时候崩溃的bug
+        }
+        invalidate();
     }
 }
