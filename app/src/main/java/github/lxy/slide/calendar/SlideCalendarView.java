@@ -214,9 +214,11 @@ public class SlideCalendarView extends View implements View.OnTouchListener {
                 color = surface.monthColor;//本月日期的颜色
             }
 
-            //选中日期的首尾之间的字体颜色
-            if ((i >= downIndex && i <= moveIndex) || (i >= moveIndex && i <= downIndex)) {
-                color = surface.selectDateColor;
+            if (downIndex >= todayIndex){
+                //选中日期的首尾之间的字体颜色
+                if ((i >= downIndex && i <= moveIndex) || (i >= moveIndex && i <= downIndex)) {
+                    color = surface.selectDateColor;
+                }
             }
 
             //今天日期的字体颜色
@@ -287,7 +289,6 @@ public class SlideCalendarView extends View implements View.OnTouchListener {
         if (downIndex < todayIndex) {//按在今天之前不管怎么按，都不会画
             return;
         }
-
 
         //按下
         if (downIndex != -1) {
