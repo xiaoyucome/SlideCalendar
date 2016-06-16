@@ -105,9 +105,13 @@ public class SlideCalendarView extends View implements View.OnTouchListener {
         // 设置按下和滑动时的背景
         drawDownOrSlidedBg(canvas);
 
+        //计算今天在date[]中的角标
+        calendar.setTime(curDate);
         int todayNumber = calendar.get(Calendar.DAY_OF_MONTH);
         todayIndex = curStartIndex + todayNumber - 1;
-
+        Log.d("111111111111","-----22222----"+todayIndex);
+        Log.d("111111111111","-----22222--todayNumber--"+todayNumber);
+        Log.d("111111111111","-----22222--curStartIndex--"+curStartIndex);
         // 画日期
         darwDate(canvas);
 
@@ -209,6 +213,16 @@ public class SlideCalendarView extends View implements View.OnTouchListener {
                 color = surface.noneMonthDateColor;
             } else {
                 color = surface.monthColor;//本月日期的颜色
+            }
+
+            //选中日期的首尾之间的字体颜色
+            if ((i >= downIndex && i <= moveIndex) || (i >= moveIndex && i <= downIndex)) {
+                color = surface.selectDateColor;
+            }
+
+            //今天日期的字体颜色
+            if (todayIndex != -1 && i == todayIndex) {
+                color = surface.todayNumberColor;
             }
 
             drawCellText(canvas, i, date[i] + "", color);
