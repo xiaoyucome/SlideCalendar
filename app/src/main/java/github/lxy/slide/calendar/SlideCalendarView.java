@@ -3,11 +3,8 @@ package github.lxy.slide.calendar;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Toast;
-
 import java.util.Calendar;
 import java.util.Date;
 
@@ -214,7 +211,7 @@ public class SlideCalendarView extends View implements View.OnTouchListener {
                 color = surface.monthColor;//本月日期的颜色
             }
 
-            if (downIndex >= todayIndex){
+            if (downIndex >= todayIndex) {
                 //选中日期的首尾之间的字体颜色
                 if ((i >= downIndex && i <= moveIndex) || (i >= moveIndex && i <= downIndex)) {
                     color = surface.selectDateColor;
@@ -281,8 +278,8 @@ public class SlideCalendarView extends View implements View.OnTouchListener {
                     .floor((y - (surface.monthHeight + surface.weekHeight))
                             / Float.valueOf(surface.cellHeight)) + 1);// 得到纵向按下的框的位置
             downIndex = (n - 1) * 7 + m - 1;// 得到按下的位置在42(0-41)个框中的索引
+            invalidate();
         }
-        invalidate();
     }
 
     public void drawDownOrSlidedBg(Canvas canvas) {
@@ -331,10 +328,7 @@ public class SlideCalendarView extends View implements View.OnTouchListener {
         /**
          * 移动时不能超出边界
          */
-        if (y < surface.monthHeight + surface.weekHeight) {
-            return;
-        }
-        if (y >= surface.height) {
+        if (y < surface.monthHeight + surface.weekHeight || y >= surface.height) {
             return;
         }
 
@@ -345,5 +339,41 @@ public class SlideCalendarView extends View implements View.OnTouchListener {
                             / Float.valueOf(surface.cellHeight)) + 1);// 得到纵向按下的框的位置
             moveIndex = (n - 1) * 7 + m - 1;// 得到按下的位置在42(0-41)个框中的索引
         }
+    }
+
+    // 设置日历时间
+    public void setCalendarData(Date date) {
+        calendar.setTime(date);
+        invalidate();
+    }
+
+    // 获得当前应该显示的年月
+    public String getYearAndmonth() {
+        calendar.setTime(curDate);
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH) + 1;
+        return year + "-" + month;
+    }
+
+    // 上一月
+    public String clickLeftMonth() {
+        moveIndex = -1;
+        downIndex = -1;
+        calendar.setTime(curDate);
+        calendar.add(Calendar.MONTH, -1);
+        curDate = calendar.getTime();
+        invalidate();
+        return getYearAndmonth();
+    }
+
+    // 下一月
+    public String clickRightMonth() {
+        moveIndex = -1;
+        downIndex = -1;
+        calendar.setTime(curDate);
+        calendar.add(Calendar.MONTH, 1);
+        curDate = calendar.getTime();
+        invalidate();
+        return getYearAndmonth();
     }
 }
