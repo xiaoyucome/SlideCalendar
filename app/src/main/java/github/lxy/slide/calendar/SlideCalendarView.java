@@ -93,6 +93,11 @@ public class SlideCalendarView extends View implements View.OnTouchListener {
 
     @Override
     protected void onDraw(Canvas canvas) {
+        //计算今天在date[]中的角标
+        calendar.setTime(curDate);
+        int todayNumber = calendar.get(Calendar.DAY_OF_MONTH);
+        todayIndex = curStartIndex + todayNumber - 1;
+
         //画周一到周日
         drawWeek(canvas);
 
@@ -105,13 +110,6 @@ public class SlideCalendarView extends View implements View.OnTouchListener {
         // 设置按下和滑动时的背景
         drawDownOrSlidedBg(canvas);
 
-        //计算今天在date[]中的角标
-        calendar.setTime(curDate);
-        int todayNumber = calendar.get(Calendar.DAY_OF_MONTH);
-        todayIndex = curStartIndex + todayNumber - 1;
-        Log.d("111111111111","-----22222----"+todayIndex);
-        Log.d("111111111111","-----22222--todayNumber--"+todayNumber);
-        Log.d("111111111111","-----22222--curStartIndex--"+curStartIndex);
         // 画日期
         darwDate(canvas);
 
@@ -127,7 +125,8 @@ public class SlideCalendarView extends View implements View.OnTouchListener {
             case MotionEvent.ACTION_MOVE:
                 setMoveDateByCoor(event.getX(), event.getY());
                 //只能选择今天之后 并且 不超过最后一个日期的角标
-                invalidate();
+                if (moveIndex >= todayIndex && moveIndex <= 41)
+                    invalidate();
                 break;
             case MotionEvent.ACTION_UP:
                 break;
@@ -280,40 +279,35 @@ public class SlideCalendarView extends View implements View.OnTouchListener {
                     .floor((y - (surface.monthHeight + surface.weekHeight))
                             / Float.valueOf(surface.cellHeight)) + 1);// 得到纵向按下的框的位置
             downIndex = (n - 1) * 7 + m - 1;// 得到按下的位置在42(0-41)个框中的索引
-            calendar.setTime(curDate);
-
-            // 根据框的索引,判断这个日期是上一月、还是下一月的
-            if (downIndex < curStartIndex) {
-                calendar.add(Calendar.MONTH, -1);
-            } else if (downIndex <= curEndIndex) {
-                calendar.add(Calendar.MONTH, 1);
-            }
-            calendar.set(Calendar.DAY_OF_MONTH, date[downIndex]);// date[downIndex]表示具体的提起(1.2.3...)
-            downDate = calendar.getTime();//此处moveDate必须赋值,防止在Up的时候崩溃的bug
         }
         invalidate();
     }
 
     public void drawDownOrSlidedBg(Canvas canvas) {
+        if (downIndex < todayIndex) {//按在今天之前不管怎么按，都不会画
+            return;
+        }
+
+
         //按下
-        if (downDate != null) {
+        if (downIndex != -1) {
             drawCellBg(canvas, downIndex, surface.cellDownColor);// 绘制按下框的背景
         }
 
         //下滑
-        if (moveIndex > downIndex) {
+        if (moveIndex > downIndex && moveIndex >= todayIndex) {
             for (int i = downIndex + 1; i < moveIndex; i++) {
-                drawCellBg(canvas, i, surface.dateSelectMiddleColor);
+                drawCellBg(canvas, i, surface.dateSelectMiddleColor);//起点移动之间的
             }
-            drawCellBg(canvas, moveIndex, surface.cellDownColor);
+            drawCellBg(canvas, moveIndex, surface.cellDownColor);//移动的
         }
 
         //上滑
-        if (downIndex > moveIndex) {
+        if (downIndex > moveIndex && moveIndex >= todayIndex) {
             for (int i = moveIndex; i < downIndex; i++) {
-                drawCellBg(canvas, i, surface.dateSelectMiddleColor);
+                drawCellBg(canvas, i, surface.dateSelectMiddleColor);//起点移动之间的
             }
-            drawCellBg(canvas, moveIndex, surface.cellDownColor);
+            drawCellBg(canvas, moveIndex, surface.cellDownColor);//移动的
         }
     }
 
@@ -349,23 +343,6 @@ public class SlideCalendarView extends View implements View.OnTouchListener {
                     .floor((y - (surface.monthHeight + surface.weekHeight))
                             / Float.valueOf(surface.cellHeight)) + 1);// 得到纵向按下的框的位置
             moveIndex = (n - 1) * 7 + m - 1;// 得到按下的位置在42(0-41)个框中的索引
-            calendar.setTime(curDate);
-
-            // 根据框的索引,判断这个日期是上一月、还是下一月的
-            if (moveIndex < curStartIndex) {
-                calendar.add(Calendar.MONTH, -1);
-            } else if (moveIndex <= curEndIndex) {
-                calendar.add(Calendar.MONTH, 1);
-            }
-
-            calendar.set(Calendar.DAY_OF_MONTH, date[moveIndex]);// date[startIndex]表示具体的提起(1.2.3...)
-            moveDate = calendar.getTime();
-            if (mLastMoveDate == null) {
-                mLastMoveDate = moveDate;
-            }
-            if (moveDate.before(today))
-                moveDate = mLastMoveDate;
-            mLastMoveDate = moveDate;
         }
     }
 }
