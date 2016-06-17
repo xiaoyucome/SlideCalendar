@@ -3,6 +3,7 @@ package github.lxy.slide.calendar;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import java.util.Calendar;
@@ -118,6 +119,7 @@ public class SlideCalendarView extends View implements View.OnTouchListener {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 setSelectedDateByCoor(event.getX(), event.getY());
+                moveIndex = downIndex;
                 break;
             case MotionEvent.ACTION_MOVE:
                 setMoveDateByCoor(event.getX(), event.getY());
