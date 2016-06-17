@@ -6,6 +6,8 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Toast;
+
 import java.util.Calendar;
 import java.util.Date;
 
@@ -37,8 +39,7 @@ public class SlideCalendarView extends View implements View.OnTouchListener {
 
     // 监听接口
     public interface OnItemClickListener {
-        void OnItemClick(Date selectedStartDate, Date selectedEndDate,
-                         Date downDate);
+        void OnItemClick(Date selectedStartDate, Date selectedEndDate);
     }
 
     public SlideCalendarView(Context context) {
@@ -129,6 +130,18 @@ public class SlideCalendarView extends View implements View.OnTouchListener {
                     invalidate();
                 break;
             case MotionEvent.ACTION_UP:
+                Log.d("111111111111","down------------"+downDate);
+                Log.d("111111111111","down----today-------"+today);
+                Log.d("111111111111","after------------"+(downDate.after(today)));
+
+                if (downDate.after(today)) {
+                    if (onItemClickListener != null)
+                        onItemClickListener.OnItemClick(downDate, moveDate);
+                } else {
+                    Toast.makeText(getContext(), "只能选择今天之后的日期", Toast.LENGTH_LONG).show();
+                    if (onItemClickListener != null)
+                        onItemClickListener.OnItemClick(null, null);
+                }
                 break;
         }
         return true;
@@ -281,6 +294,16 @@ public class SlideCalendarView extends View implements View.OnTouchListener {
                     .floor((y - (surface.monthHeight + surface.weekHeight))
                             / Float.valueOf(surface.cellHeight)) + 1);// 得到纵向按下的框的位置
             downIndex = (n - 1) * 7 + m - 1;// 得到按下的位置在42(0-41)个框中的索引
+
+            // 根据框的索引,判断这个日期是上一月、还是下一月的
+            if (isLastMonth(downIndex)) {
+                calendar.add(Calendar.MONTH, -1);
+            } else if (isNextMonth(downIndex)) {
+                calendar.add(Calendar.MONTH, 1);
+            }
+
+            calendar.set(Calendar.DAY_OF_MONTH, date[downIndex]);
+            downDate = calendar.getTime();
             invalidate();
         }
     }
@@ -341,6 +364,16 @@ public class SlideCalendarView extends View implements View.OnTouchListener {
                     .floor((y - (surface.monthHeight + surface.weekHeight))
                             / Float.valueOf(surface.cellHeight)) + 1);// 得到纵向按下的框的位置
             moveIndex = (n - 1) * 7 + m - 1;// 得到按下的位置在42(0-41)个框中的索引
+
+            calendar.set(Calendar.DAY_OF_MONTH, date[moveIndex]);
+            moveDate = calendar.getTime();
+
+            if (mLastMoveDate == null) {
+                mLastMoveDate = moveDate;
+            }
+            if (moveDate.before(today))
+                moveDate = mLastMoveDate;
+            mLastMoveDate = moveDate;
         }
     }
 
@@ -356,6 +389,20 @@ public class SlideCalendarView extends View implements View.OnTouchListener {
         int year = calendar.get(Calendar.YEAR);
         int month = calendar.get(Calendar.MONTH) + 1;
         return year + "-" + month;
+    }
+
+    private boolean isLastMonth(int i) {
+        if (i < curStartIndex) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isNextMonth(int i) {
+        if (i >= curEndIndex) {
+            return true;
+        }
+        return false;
     }
 
     // 上一月

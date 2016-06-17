@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">SlideCalendar</string>
+    <string name="select_time_day">%1$s\t至\t%2$s\t共 %3$s 天</string>
 </resources>
