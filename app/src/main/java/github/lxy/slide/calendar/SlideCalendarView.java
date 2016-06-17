@@ -91,10 +91,6 @@ public class SlideCalendarView extends View implements View.OnTouchListener {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        //计算今天在date[]中的角标
-        calendar.setTime(curDate);
-        int todayNumber = calendar.get(Calendar.DAY_OF_MONTH);
-        todayIndex = curStartIndex + todayNumber - 1;
 
         //画周一到周日
         drawWeek(canvas);
@@ -104,6 +100,11 @@ public class SlideCalendarView extends View implements View.OnTouchListener {
 
         // 计算日期,主要对42个日期的位置上设置值,这个日期值包括上一月、本月、下一月,和正常的日历是对应的
         calculateDate();
+
+        //计算今天在date[]中的角标
+        calendar.setTime(curDate);
+        int todayNumber = calendar.get(Calendar.DAY_OF_MONTH);
+        todayIndex = curStartIndex + todayNumber - 1;
 
         // 设置按下和滑动时的背景
         drawDownOrSlidedBg(canvas);
